@@ -10,7 +10,7 @@ keywords = ["screen", "tmux", "zellij"]
 authors = ["Iydon Liang <liangiydon@gmail.com>"]
 categories = ["accessibility", "api-bindings", "command-line-utilities"]
 license = "MIT"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 
 [dependencies]
@@ -20,6 +20,6 @@ duct = "0.13.6"
 [profile.release]
 codegen-units = 1
 lto = true
-opt-level = 3
+opt-level = "z"
 panic = "abort"
 strip = true

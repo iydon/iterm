@@ -6,7 +6,7 @@ use duct::cmd;
 
 const ITERM_NAME: &str = "iterm";
 const ITERM_ABOUT: &str = "Terminal workspace (screen, tmux, zellij)";
-const ITERM_VERSION: &str = "0.3.0";
+const ITERM_VERSION: &str = "0.4.0";
 
 const SCREEN: &str = "screen";
 const TMUX: &str = "tmux";
@@ -56,8 +56,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
         Some(("bash", _)) => {
             // eval "$(iterm bash)"
-            vec![SCREEN, TMUX, ZELLIJ].into_iter().for_each(|cmd| {
-                println!("alias it{}='{ITERM_NAME} {cmd}'", &cmd[..1]);
+            vec![SCREEN, TMUX, ZELLIJ].into_iter().for_each(|sub_cmd| {
+                println!("alias it{}='{ITERM_NAME} {sub_cmd}'", &sub_cmd[..1]);
             });
         }
         _ => unreachable!(),
