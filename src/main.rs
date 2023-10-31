@@ -6,7 +6,7 @@ use duct::cmd;
 
 const ITERM_NAME: &str = "iterm";
 const ITERM_ABOUT: &str = "Terminal workspace (screen, tmux, zellij)";
-const ITERM_VERSION: &str = "0.2.0";
+const ITERM_VERSION: &str = "0.3.0";
 
 const SCREEN: &str = "screen";
 const TMUX: &str = "tmux";
@@ -16,6 +16,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let command = Command::new(ITERM_NAME)
         .about(ITERM_ABOUT)
         .version(ITERM_VERSION)
+        .allow_external_subcommands(true)
         .arg_required_else_help(true)
         .subcommand(Command::new(SCREEN).alias(&SCREEN[..1]).arg(arg!([NAME])))
         .subcommand(Command::new(TMUX).alias(&TMUX[..1]).arg(arg!([NAME])))
@@ -52,6 +53,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                     .or_else(|_| cmd!(program, "attach", name).run())?,
                 None => cmd!(program, "list-sessions").run()?,
             };
+        }
+        Some(("bash", _)) => {
+            // eval "$(iterm bash)"
+            vec![SCREEN, TMUX, ZELLIJ].into_iter().for_each(|cmd| {
+                println!("alias it{}='{ITERM_NAME} {cmd}'", &cmd[..1]);
+            });
         }
         _ => unreachable!(),
     };
