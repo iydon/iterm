@@ -101,6 +101,7 @@ version = "0.4.0"
 dependencies = [
  "clap",
  "duct",
+ "once_cell",
 ]
 
 [[package]]
