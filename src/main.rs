@@ -1,66 +1,54 @@
-use std::env::var_os;
-use std::error::Error;
+mod app;
+mod config;
+mod util;
 
 use clap::{arg, Command};
-use duct::cmd;
 
-const ITERM_NAME: &str = "iterm";
-const ITERM_ABOUT: &str = "Terminal workspace (screen, tmux, zellij)";
-const ITERM_VERSION: &str = "0.4.0";
+use crate::app::{screen, tmux, zellij};
+use crate::util::Term;
 
-const SCREEN: &str = "screen";
-const TMUX: &str = "tmux";
-const ZELLIJ: &str = "zellij";
-
-fn main() -> Result<(), Box<dyn Error>> {
-    let command = Command::new(ITERM_NAME)
-        .about(ITERM_ABOUT)
-        .version(ITERM_VERSION)
+fn main() {
+    let command = Command::new(config::NAME)
+        .about(config::ABOUT)
+        .version(config::VERSION)
         .allow_external_subcommands(true)
         .arg_required_else_help(true)
-        .subcommand(Command::new(SCREEN).alias(&SCREEN[..1]).arg(arg!([NAME])))
-        .subcommand(Command::new(TMUX).alias(&TMUX[..1]).arg(arg!([NAME])))
-        .subcommand(Command::new(ZELLIJ).alias(&ZELLIJ[..1]).arg(arg!([NAME])));
+        .subcommand(
+            Command::new(screen::NAME)
+                .alias(screen::ALIAS)
+                .arg(arg!([NAME])),
+        )
+        .subcommand(
+            Command::new(tmux::NAME)
+                .alias(tmux::ALIAS)
+                .arg(arg!([NAME])),
+        )
+        .subcommand(
+            Command::new(zellij::NAME)
+                .alias(zellij::ALIAS)
+                .arg(arg!([NAME])),
+        );
     match command.get_matches().subcommand() {
-        Some((SCREEN, sub_matches)) => {
-            let program = var_os("ITERM_SCREEN").unwrap_or_else(|| SCREEN.into());
-            match sub_matches.get_one::<String>("NAME") {
-                Some(name) => match cmd!(&program, "-ls", name).stdout_null().run() {
-                    Ok(_) => cmd!(program, "-r", name).run()?,
-                    Err(_) => cmd!(program, "-S", name).run()?,
-                },
-                None => cmd!(program, "-ls").run()?,
-            };
-        }
-        Some((TMUX, sub_matches)) => {
-            let program = var_os("ITERM_TMUX").unwrap_or_else(|| TMUX.into());
-            match sub_matches.get_one::<String>("NAME") {
-                Some(name) => match cmd!(&program, "has-session", "-t", name)
-                    .stdout_null()
-                    .run()
-                {
-                    Ok(_) => cmd!(program, "attach-session", "-t", name).run()?,
-                    Err(_) => cmd!(program, "new-session", "-s", name).run()?,
-                },
-                None => cmd!(program, "list-sessions").run()?,
-            };
-        }
-        Some((ZELLIJ, sub_matches)) => {
-            let program = var_os("ITERM_ZELLIJ").unwrap_or_else(|| ZELLIJ.into());
-            match sub_matches.get_one::<String>("NAME") {
-                Some(name) => cmd!(&program, "--session", name)
-                    .run()
-                    .or_else(|_| cmd!(program, "attach", name).run())?,
-                None => cmd!(program, "list-sessions").run()?,
+        Some((key @ (screen::NAME | tmux::NAME | zellij::NAME), sub_matches)) => {
+            let name = sub_matches.get_one::<String>("NAME");
+            match key {
+                screen::NAME => screen::App::default().api(name),
+                tmux::NAME => tmux::App::default().api(name),
+                zellij::NAME => zellij::App::default().api(name),
+                _ => unreachable!(),
             };
         }
         Some(("bash", _)) => {
             // eval "$(iterm bash)"
-            vec![SCREEN, TMUX, ZELLIJ].into_iter().for_each(|sub_cmd| {
-                println!("alias it{}='{ITERM_NAME} {sub_cmd}'", &sub_cmd[..1]);
+            let items = vec![
+                (screen::NAME, screen::ALIAS),
+                (tmux::NAME, tmux::ALIAS),
+                (zellij::NAME, zellij::ALIAS),
+            ];
+            items.into_iter().for_each(|(name, alias)| {
+                println!("alias it{}='{} {name}'", alias, config::NAME);
             });
         }
         _ => unreachable!(),
     };
-    return Ok(());
 }
