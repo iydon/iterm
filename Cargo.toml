@@ -10,7 +10,7 @@ keywords = ["screen", "tmux", "zellij"]
 authors = ["Iydon Liang <liangiydon@gmail.com>"]
 categories = ["accessibility", "api-bindings", "command-line-utilities"]
 license = "MIT"
-version = "0.4.0"
+version = "0.5.0"
 edition = "2021"
 
 [dependencies]
