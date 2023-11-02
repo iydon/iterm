@@ -4,7 +4,7 @@ use std::process::exit;
 
 use duct::cmd;
 
-use super::super::util::Term;
+use crate::util::Term;
 
 pub const NAME: &str = "zellij";
 pub const ALIAS: &str = "z";
