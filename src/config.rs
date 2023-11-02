@@ -1,3 +1,3 @@
 pub const NAME: &str = "iterm";
 pub const ABOUT: &str = "Terminal workspace (screen, tmux, zellij)";
-pub const VERSION: &str = "0.5.0";
+pub const VERSION: &str = "0.6.0";
