@@ -15,7 +15,6 @@ edition = "2021"
 
 [dependencies]
 clap = "4.4.7"
-duct = "0.13.6"
 
 [profile.release]
 codegen-units = 1
