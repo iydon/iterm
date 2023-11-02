@@ -2,8 +2,7 @@ use std::env::var_os;
 use std::ffi::OsString;
 use std::process::exit;
 
-use duct::cmd;
-
+use crate::run;
 use crate::util::Term;
 
 pub const NAME: &str = "zellij";
@@ -39,17 +38,27 @@ impl Term for App {
     fn api(&self, arg: Option<&String>) {
         match arg {
             Some(name) => {
-                cmd!(&self.program, "--session", name)
-                    .run()
-                    .or_else(|_| cmd!(&self.program, "attach", name).run())
-                    .unwrap();
+                if !run!(&self.program, "--session", name)
+                    .spawn()
+                    .unwrap()
+                    .wait()
+                    .unwrap()
+                    .success()
+                {
+                    run!(&self.program, "attach", name)
+                        .spawn()
+                        .unwrap()
+                        .wait()
+                        .unwrap();
+                }
             }
             None => {
-                let output = cmd!(&self.program, "list-sessions")
-                    .unchecked()
-                    .run()
+                let status = run!(&self.program, "list-sessions")
+                    .spawn()
+                    .unwrap()
+                    .wait()
                     .unwrap();
-                exit(output.status.code().unwrap());
+                exit(status.code().unwrap());
             }
         };
     }

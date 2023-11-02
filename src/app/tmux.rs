@@ -1,9 +1,8 @@
 use std::env::var_os;
 use std::ffi::OsString;
-use std::process::exit;
+use std::process::{exit, Stdio};
 
-use duct::cmd;
-
+use crate::run;
 use crate::util::Term;
 
 pub const NAME: &str = "tmux";
@@ -21,29 +20,37 @@ impl Term for App {
     }
 
     fn exists(&self, name: &String) -> bool {
-        return cmd!(&self.program, "has-session", "-t", name)
-            .stdout_null()
-            .run()
-            .is_ok();
+        return run!(&self.program, "has-session", "-t", name)
+            .stdout(Stdio::null())
+            .spawn()
+            .unwrap()
+            .wait()
+            .unwrap()
+            .success();
     }
 
     fn attach(&self, name: &String) {
-        cmd!(&self.program, "attach-session", "-t", name)
-            .run()
+        run!(&self.program, "attach-session", "-t", name)
+            .spawn()
+            .unwrap()
+            .wait()
             .unwrap();
     }
 
     fn create(&self, name: &String) {
-        cmd!(&self.program, "new-session", "-s", name)
-            .run()
+        run!(&self.program, "new-session", "-s", name)
+            .spawn()
+            .unwrap()
+            .wait()
             .unwrap();
     }
 
     fn list(&self) {
-        let output = cmd!(&self.program, "list-sessions")
-            .unchecked()
-            .run()
+        let status = run!(&self.program, "list-sessions")
+            .spawn()
+            .unwrap()
+            .wait()
             .unwrap();
-        exit(output.status.code().unwrap());
+        exit(status.code().unwrap());
     }
 }

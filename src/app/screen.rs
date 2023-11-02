@@ -1,9 +1,8 @@
 use std::env::var_os;
 use std::ffi::OsString;
-use std::process::exit;
+use std::process::{exit, Stdio};
 
-use duct::cmd;
-
+use crate::run;
 use crate::util::Term;
 
 pub const NAME: &str = "screen";
@@ -21,19 +20,33 @@ impl Term for App {
     }
 
     fn exists(&self, name: &String) -> bool {
-        return cmd!(&self.program, "-ls", name).stdout_null().run().is_ok();
+        return run!(&self.program, "-ls", name)
+            .stdout(Stdio::null())
+            .spawn()
+            .unwrap()
+            .wait()
+            .unwrap()
+            .success();
     }
 
     fn attach(&self, name: &String) {
-        cmd!(&self.program, "-r", name).run().unwrap();
+        run!(&self.program, "-r", name)
+            .spawn()
+            .unwrap()
+            .wait()
+            .unwrap();
     }
 
     fn create(&self, name: &String) {
-        cmd!(&self.program, "-S", name).run().unwrap();
+        run!(&self.program, "-S", name)
+            .spawn()
+            .unwrap()
+            .wait()
+            .unwrap();
     }
 
     fn list(&self) {
-        let output = cmd!(&self.program, "-ls").unchecked().run().unwrap();
-        exit(output.status.code().unwrap());
+        let status = run!(&self.program, "-ls").spawn().unwrap().wait().unwrap();
+        exit(status.code().unwrap());
     }
 }
